@@ -1,0 +1,19 @@
+{
+  "name": "simple-mongoosastic-example",
+  "version": "0.0.1",
+  "description": "simple example of using the Node.js, mongodb and ElasticSearch.",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.14.0",
+    "mongoosastic": "^4.0.2",
+    "mongoose": "^4.6.2"
+  },
+  "devDependencies": {
+    "nodemon": "^1.10.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

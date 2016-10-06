@@ -1,0 +1,33 @@
+version: '2'
+
+services:
+
+  mongodb:
+    image: mongo
+    ports:
+      - "27017:27017"
+
+  elasticsearch:
+    image: elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+
+  app:
+    image: node:argon
+    command: /usr/src/app/node_modules/nodemon/bin/nodemon.js index.js
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/usr/src/app
+    working_dir: /usr/src/app
+    environment:
+      - NODE_ENV=development
+      - MONGO_URL=mongodb://mongodb/exemplo
+      - ELASTICSEARCH_URL=elasticsearch
+    depends_on:
+      - mongodb
+      - elasticsearch
+    links:
+      - mongodb
+      - elasticsearch
