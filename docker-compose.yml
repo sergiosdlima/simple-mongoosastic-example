@@ -11,11 +11,10 @@ services:
     image: elasticsearch
     ports:
       - "9200:9200"
-      - "9300:9300"
 
   app:
     image: node:argon
-    command: /usr/src/app/node_modules/nodemon/bin/nodemon.js index.js
+    command: /bin/bash -c "npm install && ./node_modules/nodemon/bin/nodemon.js index.js"
     ports:
       - "3000:3000"
     volumes:
@@ -23,7 +22,7 @@ services:
     working_dir: /usr/src/app
     environment:
       - NODE_ENV=development
-      - MONGO_URL=mongodb://mongodb/exemplo
+      - MONGO_URL=mongodb://mongodb/store
       - ELASTICSEARCH_URL=elasticsearch
     depends_on:
       - mongodb
