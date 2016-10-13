@@ -1,9 +1,10 @@
 {
   "name": "simple-mongoosastic-example",
   "version": "0.0.1",
-  "description": "simple example of using the Node.js, mongodb and ElasticSearch.",
+  "description": "simple example of using the Node.js, MongoDb and ElasticSearch.",
   "main": "index.js",
   "dependencies": {
+    "body-parser": "^1.15.2",
     "express": "^4.14.0",
     "mongoosastic": "^4.0.2",
     "mongoose": "^4.6.2"
