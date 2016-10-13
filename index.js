@@ -4,6 +4,7 @@ var app          = express();
 var mongoose     = require('mongoose');
 var mongoosastic = require('mongoosastic');
 var Schema       = mongoose.Schema;
+var ObjectId     = mongoose.Types.ObjectId;
 
 // Configuration
 app.use(bodyParser());
@@ -73,25 +74,112 @@ var ProductModel = mongoose.model("Product", ProductSchema);
 var StoreModel = mongoose.model("Store", StoreSchema);
 var PriceModel = mongoose.model("Price", PriceSchema);
 
+// Route
 app.get('/', function (req, res) {
   res.send('Hello World!');
 });
 
-app.get('/save', function(req, res) {
-  var instance = new UserModel();
-  instance.name = 'Sergio Santana';
-  instance.email = 'sergiosantana@lima.com';
-  instance.city = 'Brasil';
-  instance.save(function(err){
+// curl -X POST -H "Content-Type: application/json" -d '{"name": "Sérgio Lima", "email": "sergio@lima.com", "city": "Brasília"}' http://localhost:3000/users
+app.post('/users', function(req, res) {
+  var user = new UserModel(req.body);
+  user.save(function(err, user) {
     if (err) throw err;
-    /* Document indexation on going */
-    instance.on('es-indexed', function(err, res){
+    console.log('user saved');
+    res.json({'message': 'user saved!', user});
+    user.on('es-indexed', function(err) {
       if (err) throw err;
-      /* Document is indexed */
-      console.log('Document is indexed');
+      console.log('user indexed');
     });
   });
-  res.send('User saved!');
+});
+
+app.get('/users', function(req, res) {
+  UserModel.find({}, function(err, users) {
+    if (err) throw err;
+    res.json(users);
+  });
+});
+
+// curl -X POST -H "Content-Type: application/json" -d '{"name": "Umami Presentes", "local": "Brasília"}' http://localhost:3000/stores
+app.post('/stores', function(req, res) {
+  var store = new StoreModel(req.body);
+  store.save(function(err, store) {
+    if (err) throw err;
+    console.log('store saved');
+    res.json({'message': 'store saved!', store});
+  });
+});
+
+app.get('/stores', function(req, res) {
+  StoreModel.find({}, function(err, stores) {
+    if (err) throw err;
+    res.json(stores);
+  });
+});
+
+// curl -X POST -H "Content-Type: application/json" -d '{"description": "Frigideira Rasa Non Stick 28cm Le Creuset", "brand": "Le Creuset", "type": "Frying pan", "category": "Cooking", "picture": "http://shopfacil.vteximg.com.br/arquivos/ids/1783992-1000-1000/Frigideira-Le-Creuset-Rasa-28-cm-Non-Stick_0.jpg"}' http://localhost:3000/products
+app.post('/products', function(req, res) {
+  var product = new ProductModel(req.body);
+  product.save(function(err, product) {
+    if (err) throw err;
+    console.log('product saved');
+    res.json({'message': 'product saved!', product});
+  });
+});
+
+app.get('/products', function(req, res) {
+  ProductModel.find({}, function(err, products) {
+    if (err) throw err;
+    res.json(products);
+  });
+});
+
+// curl -X POST -H "Content-Type: application/json" -d '{"products":"57fea3e9cf0da90097b1ee56", "stores": "57fea28c86137300630fec8a", "price": 100}' http://localhost:3000/prices
+app.post('/prices', function(req, res) {
+  ProductModel.findById(req.body.products, function(err, product) {
+    if (err) throw err;
+    if (product != null) {
+      StoreModel.findById(req.body.stores, function(err, store) {
+        if (err) throw err;
+        if (store != null) {
+          var price = new PriceModel({
+            price: req.body.price,
+            products: new ObjectId(req.body.products),
+            stores: new ObjectId(req.body.stores)
+          });
+          console.log(price);
+          price.save(function(err, result) {
+            if (err) throw err;
+            console.log('price saved');
+            res.json({'message': 'price saved!', result});
+            price.on('es-indexed', function(err) {
+              if (err) throw err;
+              console.log('price indexed');
+            });
+          });
+        } else {
+          res.send("store not found");
+        }
+      });
+    } else {
+      res.send("product not found");
+    }
+  });
+});
+
+app.get('/prices', function(req, res) {
+  PriceModel.find({})
+    .populate('stores products')
+    .exec(function(err, prices) {
+      if (err) throw err;
+      res.json(prices);
+    });
+});
+
+app.get('/search', function(req, res) {
+  PriceModel.search({query_string: {query: req.query.q}}, function(err, results) {
+    res.json(results);
+  });
 });
 
 app.listen(3000, function () {
